@@ -63,9 +63,11 @@ enyo.kind({
 		toggleSelected: false,
 		//* If true, the list will assume all rows have the same height for optimization
 		fixedHeight: false,
-		
+		//* Array containing any swipeable components that will be used
 		swipeableComponents: [],
+		//* Enable/disable swipe functionality
 		enableSwipe: false,
+		//* Tell list to persist the current swipeable item
 		persistSwipeableItem: false
 	},
 	events: {
@@ -75,7 +77,7 @@ enyo.kind({
 			_inEvent.index_ contains the current row index.
 		*/
 		onSetupItem: "",
-		onSwipeStart: "",
+		onSetupSwipeItem: "",
 		onSwipeDrag: "",
 		onSwipe: "",
 		onSwipeComplete: ""
@@ -637,7 +639,7 @@ enyo.kind({
 		this.positionSwipeableContainer(this.swipeIndex,e.xDirection);
 		this.$.swipeableComponents.setShowing(true);
 		this.setPersistentItemOrigin(e.xDirection);
-		this.doSwipeStart(e);
+		this.doSetupSwipeItem(e);
 	},
 	// if a persistent swipeableItem is still showing, drag it away or bounce it
 	dragPersistentItem: function(e) {
@@ -732,21 +734,16 @@ enyo.kind({
 	},
 	// complete swipe and hide active swipeable item
 	completeSwipe: function(e) {
-		
 		if(this.completeSwipeTimeout) {
 			clearTimeout(this.completeSwipeTimeout);
 			this.completeSwipeTimeout = null;
 		}
-		
 		e.xDirection = this.swipeDirection;
-		
 		if(e.index === undefined) {
 			e.index = this.swipeIndex;
 		}
-		
 		this.setSwipeDirection(null);
 		this.resetSwipeableTransitionTime();
-		
 		// if this wasn't a persistent item, hide it upon completion and send swipe complete event
 		if(!this.getPersistSwipeableItem()) {
 			this.$.swipeableComponents.setShowing(false);
