@@ -18,7 +18,7 @@ enyo.kind({
 					{icon: "assets/file.png", content: "Charlie-Bravo"},
 					{icon: "assets/file.png", content: "Charlie-Charlie"}
 				]},
-				{icon: "assets/folder-open.png", content: "Delta", expandable: true, expanded: true, components: [
+				{icon: "assets/folder-open.png", content: "Delta", expandable: true, expanded: true, collapsible: false, components: [
 					{icon: "assets/file.png", content: "Delta-Alpha"},
 					{icon: "assets/file.png", content: "Delta-Bravo"},
 					{icon: "assets/file.png", content: "Delta-Charlie"}

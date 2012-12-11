@@ -32,6 +32,8 @@ enyo.kind({
 		//* @public
 		//* Whether or not the Node is expandable and has child branches
 		expandable: false,
+		//* Whether or not the Node is collapsible
+		collapsible: true,
 		//* Open/closed state of the current Node
 		expanded: false,
 		//* Path to image to be used as the icon for this Node
@@ -190,7 +192,9 @@ enyo.kind({
 		}), 25);
 	},
 	expandedChanged: function(inOldExpanded) {
-		if (!this.expandable) {
+		if (!this.collapsible && !this.expanded) {
+			this.expanded = true;
+		} else if (!this.expandable) {
 			this.expanded = false;
 		} else {
 			var event = {expanded: this.expanded};
