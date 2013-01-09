@@ -108,9 +108,40 @@ enyo.kind({
 		this.inherited(arguments);
 	},
 	removeControl: function(inControl) {
+		var removed = enyo.indexOf(inControl, this.getPanels());
 		this.inherited(arguments);
-		if (this.destroying && this.controls.length > 0 && this.isPanel(inControl)) {
-			this.setIndex(Math.max(this.index - 1, 0));
+		// Post-remove cleanup
+		if (!this.destroying && (this.controls.length > 0) && this.isPanel(inControl)) {
+			// Adjust transition info, so that events are fired correctly for subsequent transitions
+			if (this.startTransitionInfo) {
+				if (removed < this.startTransitionInfo.fromIndex) {
+					this.startTransitionInfo.fromIndex--;
+				} else if (removed == this.startTransitionInfo.fromIndex) {
+					this.startTransitionInfo.fromIndex = null;
+				}
+				if (removed < this.startTransitionInfo.toIndex) {
+					this.startTransitionInfo.toIndex--;
+				} else if (removed == this.startTransitionInfo.toIndex) {
+					this.startTransitionInfo.toIndex = null;
+				}
+			}
+			if (this.finishTransitionInfo) {
+				if (removed < this.finishTransitionInfo.fromIndex) {
+					this.finishTransitionInfo.fromIndex--;
+				} else if (removed == this.finishTransitionInfo.fromIndex) {
+					this.finishTransitionInfo.fromIndex = null;
+				}
+				if (removed < this.finishTransitionInfo.toIndex) {
+					this.finishTransitionInfo.toIndex--;
+				} else if (removed == this.finishTransitionInfo.toIndex) {
+					this.finishTransitionInfo.toIndex = null;
+				}
+			}
+			// Update index if necessary
+			if ((removed < this.index) || 
+			    ((this.index == removed) && (removed >= this.getPanels().length))) {
+				this.setIndex(Math.max(this.index - 1, 0));
+			}
 			this.flow();
 			this.reflow();
 		}
@@ -208,7 +239,7 @@ enyo.kind({
 			this.$.animator.stop();
 			if (this.hasNode()) {
 				if (this.animate) {
-					this.startTransition();
+					this.startTransition(true);
 					this.$.animator.play({
 						startValue: this.fraction
 					});
@@ -228,7 +259,7 @@ enyo.kind({
 		}
 		this.fraction = 1;
 		this.stepTransition();
-		this.finishTransition();
+		this.finishTransition(true);
 	},
 	dragstart: function(inSender, inEvent) {
 		if (this.draggable && this.layout && this.layout.canDragEvent(inEvent)) {
@@ -321,28 +352,32 @@ enyo.kind({
 		if (this.$.animator && this.$.animator.isAnimating()) {
 			this.$.animator.stop();
 		}
-		this.startTransition();
+		this.startTransition(false);
 		this.fraction = 1;
 		this.stepTransition();
-		this.finishTransition();
+		this.finishTransition(false);
 	},
-	startTransition: function() {
+	startTransition: function(sendEvents) {
 		this.fromIndex = this.fromIndex != null ? this.fromIndex : this.lastIndex || 0;
 		this.toIndex = this.toIndex != null ? this.toIndex : this.index;
 		//this.log(this.id, this.fromIndex, this.toIndex);
 		if (this.layout) {
 			this.layout.start();
 		}
-		this.fireTransitionStart();
+		if (sendEvents) {
+			this.fireTransitionStart();
+		}
 	},
-	finishTransition: function() {
+	finishTransition: function(sendEvents) {
 		if (this.layout) {
 			this.layout.finish();
 		}
 		this.transitionPoints = [];
 		this.fraction = 0;
 		this.fromIndex = this.toIndex = null;
-		this.fireTransitionFinish();
+		if (sendEvents) {
+			this.fireTransitionFinish();
+		}
 	},
 	fireTransitionStart: function() {
 		var t = this.startTransitionInfo;
